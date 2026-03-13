@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ExamPYQ — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0d0d14;--sidebar:#111120;--card:#16162a;--border:#1e1e35;
+  --text:#e8e8f5;--muted:#6b6b90;--dim:#3a3a55;
+  --blue:#4f7cff;--blue2:#3a6aee;--green:#22c55e;--red:#ef4444;
+  --orange:#f97316;--yellow:#eab308;--purple:#a855f7;
+  --radius:12px;--sidebar-w:240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+a{color:inherit;text-decoration:none}
+input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:.3s}
+.sidebar-logo{padding:24px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-mark{width:32px;height:32px;background:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
+.logo-text{font-weight:800;font-size:16px}
+.logo-text span{color:var(--blue)}
+.sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;padding:0 8px;margin-bottom:6px;margin-top:16px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:.2s;font-size:13px;font-weight:500;color:var(--muted)}
+.nav-item:hover{background:rgba(79,124,255,.1);color:var(--text)}
+.nav-item.active{background:rgba(79,124,255,.15);color:var(--blue)}
+.nav-item .icon{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border)}
+.admin-pill{display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border-radius:10px;cursor:pointer}
+.admin-avatar{width:30px;height:30px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.admin-name{font-size:12px;font-weight:600}
+.admin-role{font-size:10px;color:var(--muted)}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--sidebar);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-btn{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;font-family:'Plus Jakarta Sans',sans-serif}
+.topbar-btn:hover{background:var(--blue2)}
+.topbar-btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.topbar-btn.danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.content{padding:28px;flex:1}
+
+/* ── VIEWS ── */
+.view{display:none}
+.view.active{display:block}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.stat-card .sc-icon{font-size:28px;margin-bottom:12px}
+.stat-card .sc-num{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.stat-card .sc-label{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-card .sc-delta{font-size:11px;margin-top:8px;font-weight:600}
+.sc-delta.up{color:var(--green)}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.table-title{font-size:15px;font-weight:700}
+.search-input{background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:8px 14px;font-size:13px;width:240px;outline:none;font-family:'Plus Jakarta Sans',sans-serif}
+.search-input:focus{border-color:var(--blue)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;padding:12px 20px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:13px 20px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-icon{font-size:20px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
+.badge.green{background:rgba(34,197,94,.15);color:var(--green)}
+.badge.red{background:rgba(239,68,68,.15);color:var(--red)}
+.badge.blue{background:rgba(79,124,255,.15);color:var(--blue)}
+.badge.orange{background:rgba(249,115,22,.15);color:var(--orange)}
+.badge.yellow{background:rgba(234,179,8,.15);color:var(--yellow)}
+.badge.purple{background:rgba(168,85,247,.15);color:var(--purple)}
+.action-btns{display:flex;gap:6px}
+.act-btn{padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;transition:.15s}
+.act-btn.edit{background:rgba(79,124,255,.15);color:var(--blue)}
+.act-btn.edit:hover{background:rgba(79,124,255,.3)}
+.act-btn.del{background:rgba(239,68,68,.12);color:var(--red)}
+.act-btn.del:hover{background:rgba(239,68,68,.25)}
+.act-btn.view{background:rgba(34,197,94,.12);color:var(--green)}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty-state .ei{font-size:40px;margin-bottom:12px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1}
+.modal-head h3{font-size:17px;font-weight:700}
+.modal-close{background:var(--bg);border:none;color:var(--muted);font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.modal-close:hover{color:var(--text);background:var(--border)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--card)}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid.single{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+label.fl{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.5px}
+.finput{background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:10px 14px;font-size:14px;width:100%;outline:none;transition:border .2s;font-family:'Plus Jakarta Sans',sans-serif}
+.finput:focus{border-color:var(--blue)}
+textarea.finput{resize:vertical;min-height:100px}
+select.finput option{background:var(--card)}
+.fhint{font-size:11px;color:var(--dim);margin-top:2px}
+.toggle-wrap{display:flex;align-items:center;gap:10px}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:100px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--green)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+.toggle-label{font-size:13px;font-weight:500}
+.subjects-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.subject-row{display:grid;grid-template-columns:1fr 80px 80px auto;gap:8px;align-items:center}
+.rm-btn{background:rgba(239,68,68,.15);border:none;color:var(--red);border-radius:7px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.add-row-btn{background:rgba(79,124,255,.1);border:1px dashed rgba(79,124,255,.3);color:var(--blue);border-radius:9px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;width:100%;transition:.2s}
+.add-row-btn:hover{background:rgba(79,124,255,.2)}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--blue);background:rgba(79,124,255,.05)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone .uz-icon{font-size:32px;margin-bottom:8px}
+.upload-zone .uz-text{font-size:13px;color:var(--muted)}
+.upload-zone .uz-sub{font-size:11px;color:var(--dim);margin-top:4px}
+.file-preview{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:9px;margin-top:8px}
+.file-preview span{font-size:13px;font-weight:500;color:var(--green)}
+.char-count{font-size:11px;color:var(--dim);text-align:right;margin-top:2px}
+
+/* ── SETTINGS PAGE ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.settings-card h3{font-size:14px;font-weight:700;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;animation:toastIn .3s ease;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.toast-item.success{border-left:3px solid var(--green)}
+.toast-item.error{border-left:3px solid var(--red)}
+.toast-item .ti{font-size:16px}
+
+/* ── LOGIN PAGE ── */
+.login-wrap{min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:var(--bg);position:fixed;inset:0;z-index:500}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:380px}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center}
+.login-card h2{font-size:22px;font-weight:800;margin-bottom:4px;text-align:center}
+.login-card p{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
+.login-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;font-family:'Plus Jakarta Sans',sans-serif;margin-top:8px}
+.login-btn:hover{background:var(--blue2)}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.pg-btns{display:flex;gap:4px}
+.pg-btn{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer;transition:.2s}
+.pg-btn:hover,.pg-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ── RECENT CARDS ── */
+.recent-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.recent-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.recent-card h4{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted)}
+.recent-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.recent-item:last-child{border-bottom:none}
+.ri-icon{width:30px;height:30px;background:rgba(79,124,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ri-name{font-weight:500;margin-bottom:2px}
+.ri-sub{color:var(--muted);font-size:11px}
+.ri-num{margin-left:auto;font-weight:700;color:var(--blue)}
+
+/* COLOR PICKER PREVIEW */
+.color-row{display:flex;gap:8px;align-items:center}
+.color-swatch{width:28px;height:28px;border-radius:7px;border:2px solid var(--border);flex-shrink:0;cursor:pointer}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{animation:spin .7s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-mark">E</div>
+      <span style="font-weight:800;font-size:18px">Exam<span style="color:var(--blue)">PYQ</span> Admin</span>
+    </div>
+    <h2>Welcome Back 👋</h2>
+    <p>Admin panel mein login karein</p>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="fl">Username</label>
+      <input class="finput" id="loginUser" type="text" placeholder="admin" value="admin"/>
+    </div>
+    <div class="form-group">
+      <label class="fl">Password</label>
+      <input class="finput" id="loginPass" type="password" placeholder="••••••••" value="admin123"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Login →</button>
+    <p style="font-size:11px;color:var(--dim);text-align:center;margin-top:12px">Default: admin / admin123</p>
+  </div>
+</div>
+
+<!-- ── SIDEBAR ── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">E</div>
+    <div class="logo-text">Exam<span>PYQ</span></div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-item active" onclick="showView('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-label">Content</div>
+    <div class="nav-item" onclick="showView('categories',this)"><span class="icon">🗂️</span> Categories</div>
+    <div class="nav-item" onclick="showView('exams',this)"><span class="icon">📚</span> Exams</div>
+    <div class="nav-item" onclick="showView('papers',this)"><span class="icon">📄</span> Papers / PDFs</div>
+    <div class="nav-label">Site</div>
+    <div class="nav-item" onclick="showView('settings',this)"><span class="icon">⚙️</span> Site Settings</div>
+    <div class="nav-item" onclick="showView('password',this)"><span class="icon">🔑</span> Change Password</div>
+    <div class="nav-label">Tools</div>
+    <div class="nav-item" onclick="window.open('pyq-website.html','_blank')"><span class="icon">🌐</span> View Website</div>
+    <div class="nav-item" onclick="doLogout()" style="color:var(--red)"><span class="icon">🚪</span> Logout</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-pill">
+      <div class="admin-avatar" id="adminAvatar">A</div>
+      <div><div class="admin-name" id="adminName">Admin</div><div class="admin-role">Superadmin</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main" id="mainArea" style="display:none">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-right" id="topbarActions"></div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="stats-grid" id="dashStats"></div>
+      <div class="recent-grid" id="dashRecent"></div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="view" id="view-categories">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">All Categories</div>
+          <input class="search-input" placeholder="Search categories..." oninput="filterTable('cat-table',this.value)"/>
+        </div>
+        <table id="cat-table">
+          <thead><tr><th>Icon</th><th>Name</th><th>Slug</th><th>Exams</th><th>Status</th><th>Order</th><th>Actions</th></tr></thead>
+          <tbody id="catTbody"></tbody>
+        </table>
+        <div class="empty-state" id="catEmpty" style="display:none"><div class="ei">🗂️</div><p>No categories found</p></div>
+      </div>
+    </div>
+
+    <!-- EXAMS -->
+    <div class="view" id="view-exams">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">All Exams</div>
+          <div style="display:flex;gap:10px">
+            <select class="search-input" id="examCatFilter" style="width:160px" onchange="loadExams()">
+              <option value="">All Categories</option>
+            </select>
+            <input class="search-input" placeholder="Search exams..." oninput="filterTable('exam-table',this.value)"/>
+          </div>
+        </div>
+        <table id="exam-table">
+          <thead><tr><th>Icon</th><th>Exam Name</th><th>Category</th><th>Papers</th><th>Status</th><th>Badge</th><th>Actions</th></tr></thead>
+          <tbody id="examTbody"></tbody>
+        </table>
+        <div class="empty-state" id="examEmpty" style="display:none"><div class="ei">📚</div><p>No exams found</p></div>
+      </div>
+    </div>
+
+    <!-- PAPERS -->
+    <div class="view" id="view-papers">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">All Papers / PDFs</div>
+          <div style="display:flex;gap:10px">
+            <select class="search-input" id="paperExamFilter" style="width:200px" onchange="loadPapers()">
+              <option value="">All Exams</option>
+            </select>
+            <input class="search-input" placeholder="Search papers..." oninput="filterTable('paper-table',this.value)"/>
+          </div>
+        </div>
+        <table id="paper-table">
+          <thead><tr><th>Title</th><th>Exam</th><th>Year</th><th>Type</th><th>Size</th><th>Free</th><th>Downloads</th><th>Actions</th></tr></thead>
+          <tbody id="paperTbody"></tbody>
+        </table>
+        <div class="empty-state" id="paperEmpty" style="display:none"><div class="ei">📄</div><p>No papers found</p></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="view-settings">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>🌐 Site Identity</h3>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">Site Name</label><input class="finput" id="s_site_name"/></div>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">Tagline</label><input class="finput" id="s_site_tagline"/></div>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">Footer Text</label><input class="finput" id="s_footer_text"/></div>
+          <div class="form-group"><label class="fl">Meta Description</label><textarea class="finput" id="s_meta_description" rows="3"></textarea></div>
+        </div>
+        <div class="settings-card">
+          <h3>📊 Homepage Stats</h3>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">Total Papers (shown on site)</label><input class="finput" type="number" id="s_total_papers"/></div>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">Total Downloads</label><input class="finput" type="number" id="s_total_downloads"/></div>
+          <div class="form-group"><label class="fl">Total Exams</label><input class="finput" type="number" id="s_total_exams"/></div>
+        </div>
+        <div class="settings-card">
+          <h3>🎨 Appearance</h3>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="fl">Primary Color</label>
+            <div class="color-row"><input type="color" class="color-swatch" id="s_primary_color_pick" oninput="document.getElementById('s_primary_color').value=this.value"/><input class="finput" id="s_primary_color" placeholder="#1a56ff" style="flex:1"/></div>
+          </div>
+          <div class="form-group">
+            <label class="fl">Accent Color</label>
+            <div class="color-row"><input type="color" class="color-swatch" id="s_accent_color_pick" oninput="document.getElementById('s_accent_color').value=this.value"/><input class="finput" id="s_accent_color" placeholder="#ff6b2b" style="flex:1"/></div>
+          </div>
+        </div>
+        <div class="settings-card">
+          <h3>📥 Download Settings</h3>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="fl">Allow Free Downloads</label>
+            <div class="toggle-wrap">
+              <label class="toggle"><input type="checkbox" id="s_allow_free_download"/><span class="toggle-slider"></span></label>
+              <span class="toggle-label">Enable free paper downloads</span>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">PDF Watermark Text</label><input class="finput" id="s_watermark_text" placeholder="YourSite.com"/></div>
+          <div class="form-group"><label class="fl">Google Analytics ID</label><input class="finput" id="s_google_analytics" placeholder="G-XXXXXXXXXX"/></div>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;justify-content:flex-end">
+        <button class="topbar-btn" onclick="saveSettings()">💾 Save All Settings</button>
+      </div>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="view" id="view-password">
+      <div style="max-width:440px">
+        <div class="settings-card">
+          <h3>🔑 Change Password</h3>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">Current Password</label><input class="finput" type="password" id="cp_current"/></div>
+          <div class="form-group" style="margin-bottom:14px"><label class="fl">New Password</label><input class="finput" type="password" id="cp_new"/></div>
+          <div class="form-group" style="margin-bottom:20px"><label class="fl">Confirm New Password</label><input class="finput" type="password" id="cp_confirm"/></div>
+          <button class="topbar-btn" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MODALS
+══════════════════════════ -->
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="catModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="catModalTitle">Add Category</h3>
+      <button class="modal-close" onclick="closeModal('catModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cm_id"/>
+      <div class="form-grid">
+        <div class="form-group full"><label class="fl">Category Name *</label><input class="finput" id="cm_name" placeholder="Banking & Insurance"/></div>
+        <div class="form-group"><label class="fl">Slug (URL)</label><input class="finput" id="cm_slug" placeholder="banking"/><div class="fhint">Auto-generated if empty</div></div>
+        <div class="form-group"><label class="fl">Icon (Emoji)</label><input class="finput" id="cm_icon" placeholder="🏦" maxlength="4"/></div>
+        <div class="form-group"><label class="fl">Color</label><div class="color-row"><input type="color" class="color-swatch" id="cm_color_pick" oninput="document.getElementById('cm_color').value=this.value"/><input class="finput" id="cm_color" placeholder="#1a56ff" style="flex:1"/></div></div>
+        <div class="form-group"><label class="fl">Sort Order</label><input class="finput" type="number" id="cm_sort" placeholder="0"/></div>
+        <div class="form-group" style="align-self:end;padding-bottom:2px">
+          <div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="cm_active" checked/><span class="toggle-slider"></span></label><span class="toggle-label">Active</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="topbar-btn secondary" onclick="closeModal('catModal')">Cancel</button>
+      <button class="topbar-btn" onclick="saveCategory()">Save Category</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exam Modal -->
+<div class="modal-overlay" id="examModal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-head">
+      <h3 id="examModalTitle">Add Exam</h3>
+      <button class="modal-close" onclick="closeModal('examModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="em_id"/>
+      <!-- Basic Info -->
+      <p style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Basic Info</p>
+      <div class="form-grid">
+        <div class="form-group full"><label class="fl">Exam Name *</label><input class="finput" id="em_name" placeholder="SBI PO" oninput="autoSlug()"/></div>
+        <div class="form-group"><label class="fl">Category *</label><select class="finput" id="em_category"></select></div>
+        <div class="form-group"><label class="fl">Slug</label><input class="finput" id="em_slug" placeholder="sbi-po"/></div>
+        <div class="form-group"><label class="fl">Icon (Emoji)</label><input class="finput" id="em_icon" placeholder="🏦" maxlength="4"/></div>
+        <div class="form-group"><label class="fl">Badge (NEW / HOT / ELITE)</label><input class="finput" id="em_badge" placeholder="NEW"/></div>
+        <div class="form-group"><label class="fl">Sort Order</label><input class="finput" type="number" id="em_sort" placeholder="0"/></div>
+        <div class="form-group full"><label class="fl">Short Description</label><textarea class="finput" id="em_description" rows="2" placeholder="Brief description of the exam..."></textarea></div>
+      </div>
+
+      <!-- Exam Details -->
+      <p style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:20px 0 14px">Exam Details</p>
+      <div class="form-grid">
+        <div class="form-group"><label class="fl">Conducting Body</label><input class="finput" id="em_conducting_body" placeholder="IBPS / SBI / UPSC"/></div>
+        <div class="form-group"><label class="fl">Frequency</label><input class="finput" id="em_frequency" placeholder="Annual"/></div>
+        <div class="form-group"><label class="fl">Stages</label><input class="finput" id="em_stages" placeholder="Pre + Mains + Interview"/></div>
+        <div class="form-group"><label class="fl">Language</label><input class="finput" id="em_language" placeholder="Hindi & English"/></div>
+        <div class="form-group"><label class="fl">Negative Marking</label><input class="finput" id="em_negative" placeholder="0.25"/></div>
+      </div>
+
+      <!-- Subjects -->
+      <p style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:20px 0 14px">Subjects / Pattern</p>
+      <div style="display:grid;grid-template-columns:1fr 80px 80px 32px;gap:8px;margin-bottom:6px">
+        <span style="font-size:11px;font-weight:600;color:var(--dim)">Subject Name</span>
+        <span style="font-size:11px;font-weight:600;color:var(--dim)">Questions</span>
+        <span style="font-size:11px;font-weight:600;color:var(--dim)">Marks</span>
+        <span></span>
+      </div>
+      <div class="subjects-list" id="subjectsList"></div>
+      <button class="add-row-btn" onclick="addSubjectRow()">+ Add Subject</button>
+
+      <!-- SEO -->
+      <p style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:20px 0 14px">SEO Settings</p>
+      <div class="form-grid">
+        <div class="form-group full"><label class="fl">SEO Title (60 chars max)</label><input class="finput" id="em_seo_title" maxlength="60" oninput="updateCharCount(this,'seo_title_count',60)"/><div class="char-count" id="seo_title_count">0/60</div></div>
+        <div class="form-group full"><label class="fl">SEO Description (160 chars max)</label><textarea class="finput" id="em_seo_description" rows="2" maxlength="160" oninput="updateCharCount(this,'seo_desc_count',160)"></textarea><div class="char-count" id="seo_desc_count">0/160</div></div>
+        <div class="form-group full"><label class="fl">Keywords (comma separated)</label><input class="finput" id="em_seo_keywords" placeholder="SBI PO, SBI PO PYQ, SBI PO papers"/></div>
+        <div class="form-group full"><label class="fl">SEO Content (HTML allowed)</label><textarea class="finput" id="em_seo_content" rows="6" placeholder="<p>Write detailed SEO content here...</p>"></textarea></div>
+      </div>
+
+      <!-- Toggles -->
+      <div class="form-grid" style="margin-top:16px">
+        <div class="form-group"><div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="em_active" checked/><span class="toggle-slider"></span></label><span class="toggle-label">Active</span></div></div>
+        <div class="form-group"><div class="toggle-wrap"><label class="toggle"><input type="checkbox" id="em_featured"/><span class="toggle-slider"></span></label><span class="toggle-label">Featured on Homepage</span></div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="topbar-btn secondary" onclick="closeModal('examModal')">Cancel</button>
+      <button class="topbar-btn" onclick="saveExam()">Save Exam</button>
+    </div>
+  </div>
+</div>
+
+<!-- Paper Modal -->
+<div class="modal-overlay" id="paperModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="paperModalTitle">Add Paper</h3>
+      <button class="modal-close" onclick="closeModal('paperModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pm_id"/>
+      <div class="form-grid">
+        <div class="form-group full"><label class="fl">Exam *</label><select class="finput" id="pm_exam_id"></select></div>
+        <div class="form-group full"><label class="fl">Paper Title *</label><input class="finput" id="pm_title" placeholder="SBI PO Prelims 2024 — Memory Based"/></div>
+        <div class="form-group"><label class="fl">Year</label><input class="finput" type="number" id="pm_year" placeholder="2024"/></div>
+        <div class="form-group"><label class="fl">Paper Type</label>
+          <select class="finput" id="pm_type">
+            <option>Prelims</option><option>Mains</option><option>Final</option>
+            <option>Tier I</option><option>Tier II</option><option>Phase I</option><option>Phase II</option>
+            <option>Paper</option><option>Mock</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="fl">Shift (optional)</label><input class="finput" id="pm_shift" placeholder="Shift 1 / All Shifts"/></div>
+        <div class="form-group"><label class="fl">No. of Questions</label><input class="finput" type="number" id="pm_questions" placeholder="100"/></div>
+        <div class="form-group"><label class="fl">Sort Order</label><input class="finput" type="number" id="pm_sort" placeholder="0"/></div>
+        <div class="form-group"><div class="toggle-wrap" style="margin-top:24px"><label class="toggle"><input type="checkbox" id="pm_free" checked/><span class="toggle-slider"></span></label><span class="toggle-label">Free Download</span></div></div>
+        <div class="form-group"><div class="toggle-wrap" style="margin-top:24px"><label class="toggle"><input type="checkbox" id="pm_active" checked/><span class="toggle-slider"></span></label><span class="toggle-label">Active</span></div></div>
+      </div>
+
+      <!-- PDF Upload -->
+      <div style="margin-top:18px">
+        <label class="fl" style="display:block;margin-bottom:8px">PDF File</label>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="pm_file" accept=".pdf" onchange="previewFile(this)"/>
+          <div class="uz-icon">📤</div>
+          <div class="uz-text">PDF file yahan drop karein ya click karein</div>
+          <div class="uz-sub">Max 50MB • PDF only</div>
+        </div>
+        <div class="file-preview" id="filePreview" style="display:none">
+          <span>📄</span>
+          <span id="filePreviewName"></span>
+        </div>
+        <div style="margin-top:12px">
+          <label class="fl" style="display:block;margin-bottom:6px">— YA — Direct PDF URL paste karein</label>
+          <input class="finput" id="pm_file_url" placeholder="https://example.com/paper.pdf"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="topbar-btn secondary" onclick="closeModal('paperModal')">Cancel</button>
+      <button class="topbar-btn" onclick="savePaper()" id="paperSaveBtn">Save Paper</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head"><h3>Confirm Delete</h3><button class="modal-close" onclick="closeModal('confirmModal')">✕</button></div>
+    <div class="modal-body" style="text-align:center;padding:28px">
+      <div style="font-size:48px;margin-bottom:14px">🗑️</div>
+      <p id="confirmText" style="font-size:14px;line-height:1.6;color:var(--muted)">Kya aap sure hain? Yeh action undo nahi ho sakta.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="topbar-btn secondary" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="topbar-btn" style="background:var(--red)" id="confirmOkBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast" id="toastContainer"></div>
+
+<!-- ══════════════════════════
+     JAVASCRIPT
+══════════════════════════ -->
+<script>
+const API = 'http://localhost:4000/api';
+let token = localStorage.getItem('pyq_token');
+let adminInfo = JSON.parse(localStorage.getItem('pyq_admin') || '{}');
+
+// ── INIT ──
+window.onload = () => {
+  if (token) {
+    showApp();
+    showView('dashboard', document.querySelector('.nav-item'));
+  }
+};
+
+function showApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('mainArea').style.display = 'flex';
+  document.getElementById('adminName').textContent = adminInfo.username || 'Admin';
+  document.getElementById('adminAvatar').textContent = (adminInfo.username || 'A')[0].toUpperCase();
+}
+
+// ── LOGIN / LOGOUT ──
+async function doLogin() {
+  const username = document.getElementById('loginUser').value;
+  const password = document.getElementById('loginPass').value;
+  try {
+    const res = await api('POST', '/admin/login', { username, password }, false);
+    token = res.token;
+    adminInfo = res.admin;
+    localStorage.setItem('pyq_token', token);
+    localStorage.setItem('pyq_admin', JSON.stringify(adminInfo));
+    showApp();
+    showView('dashboard', document.querySelector('.nav-item'));
+    toast('success', '✅ Login successful!');
+  } catch (e) {
+    toast('error', '❌ ' + (e.message || 'Login failed'));
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('pyq_token');
+  localStorage.removeItem('pyq_admin');
+  location.reload();
+}
+
+// ── API HELPER ──
+async function api(method, endpoint, body = null, auth = true, isFormData = false) {
+  const headers = {};
+  if (auth) headers['Authorization'] = `Bearer ${token}`;
+  if (!isFormData) headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(API + endpoint, {
+    method,
+    headers,
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'API Error');
+  return data;
+}
+
+// ── VIEW SWITCHING ──
+function showView(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name)?.classList.add('active');
+  el?.classList.add('active');
+
+  const titles = { dashboard: 'Dashboard', categories: 'Categories', exams: 'Exams',
+    papers: 'Papers / PDFs', settings: 'Site Settings', password: 'Change Password' };
+  document.getElementById('topbarTitle').textContent = titles[name] || name;
+
+  const actions = {
+    categories: `<button class="topbar-btn" onclick="openCatModal()">+ Add Category</button>`,
+    exams: `<button class="topbar-btn" onclick="openExamModal()">+ Add Exam</button>`,
+    papers: `<button class="topbar-btn" onclick="openPaperModal()">+ Add Paper</button>`,
+  };
+  document.getElementById('topbarActions').innerHTML = actions[name] || '';
+
+  if (name === 'dashboard') loadDashboard();
+  else if (name === 'categories') loadCategories();
+  else if (name === 'exams') { loadCategoryFilter(); loadExams(); }
+  else if (name === 'papers') { loadPaperExamFilter(); loadPapers(); }
+  else if (name === 'settings') loadSettings();
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const data = await api('GET', '/admin/dashboard');
+  const statsHtml = [
+    { icon: '📚', num: data.total_exams, label: 'Total Exams', delta: `${data.active_exams} active` },
+    { icon: '📄', num: data.total_papers, label: 'Total Papers', delta: `${data.free_papers} free · ${data.premium_papers} premium` },
+    { icon: '⬇️', num: data.total_downloads.toLocaleString(), label: 'Total Downloads', delta: 'All time' },
+    { icon: '🗂️', num: data.total_categories, label: 'Categories', delta: 'Active' },
+    { icon: '⭐', num: data.featured_exams, label: 'Featured Exams', delta: 'On homepage' },
+  ].map(s => `<div class="stat-card"><div class="sc-icon">${s.icon}</div><div class="sc-num">${s.num}</div><div class="sc-label">${s.label}</div><div class="sc-delta up">${s.delta}</div></div>`).join('');
+  document.getElementById('dashStats').innerHTML = statsHtml;
+
+  const recentHtml = `
+    <div class="recent-card">
+      <h4>🆕 Recently Added Papers</h4>
+      ${data.recent_papers.map(p => `<div class="recent-item"><div class="ri-icon">📄</div><div><div class="ri-name">${p.title}</div><div class="ri-sub">${p.exam_name} · ${p.year || '—'}</div></div><span class="ri-num">${p.is_free ? 'FREE' : '💎'}</span></div>`).join('')}
+    </div>
+    <div class="recent-card">
+      <h4>🔥 Most Downloaded Papers</h4>
+      ${data.top_downloads.map(p => `<div class="recent-item"><div class="ri-icon">⬇️</div><div><div class="ri-name">${p.title}</div><div class="ri-sub">${p.exam_name}</div></div><span class="ri-num">${p.downloads}</span></div>`).join('')}
+    </div>`;
+  document.getElementById('dashRecent').innerHTML = recentHtml;
+}
+
+// ── CATEGORIES ──
+async function loadCategories() {
+  const cats = await api('GET', '/admin/categories');
+  const tbody = document.getElementById('catTbody');
+  if (!cats.length) { tbody.innerHTML = ''; document.getElementById('catEmpty').style.display = 'block'; return; }
+  document.getElementById('catEmpty').style.display = 'none';
+  tbody.innerHTML = cats.map(c => `
+    <tr data-search="${c.name.toLowerCase()}">
+      <td class="td-icon">${c.icon}</td>
+      <td style="font-weight:600">${c.name}</td>
+      <td><code style="font-size:11px;color:var(--muted)">${c.slug}</code></td>
+      <td>${c.exam_count || 0} exams</td>
+      <td><span class="badge ${c.active ? 'green' : 'red'}">${c.active ? 'Active' : 'Inactive'}</span></td>
+      <td>${c.sort_order}</td>
+      <td><div class="action-btns">
+        <button class="act-btn edit" onclick="openCatModal(${JSON.stringify(c).replace(/"/g,'&quot;')})">Edit</button>
+        <button class="act-btn del" onclick="confirmDelete('category',${c.id},'${c.name}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openCatModal(cat) {
+  document.getElementById('catModalTitle').textContent = cat ? 'Edit Category' : 'Add Category';
+  document.getElementById('cm_id').value = cat?.id || '';
+  document.getElementById('cm_name').value = cat?.name || '';
+  document.getElementById('cm_slug').value = cat?.slug || '';
+  document.getElementById('cm_icon').value = cat?.icon || '📋';
+  document.getElementById('cm_color').value = cat?.color || '#1a56ff';
+  document.getElementById('cm_color_pick').value = cat?.color || '#1a56ff';
+  document.getElementById('cm_sort').value = cat?.sort_order || 0;
+  document.getElementById('cm_active').checked = cat?.active !== 0;
+  openModal('catModal');
+}
+
+async function saveCategory() {
+  const id = document.getElementById('cm_id').value;
+  const body = {
+    name: document.getElementById('cm_name').value,
+    slug: document.getElementById('cm_slug').value,
+    icon: document.getElementById('cm_icon').value,
+    color: document.getElementById('cm_color').value,
+    sort_order: +document.getElementById('cm_sort').value || 0,
+    active: document.getElementById('cm_active').checked ? 1 : 0,
+  };
+  if (!body.name) return toast('error', '⚠️ Category name required');
+  await api(id ? 'PUT' : 'POST', `/admin/categories${id ? '/'+id : ''}`, body);
+  closeModal('catModal');
+  loadCategories();
+  toast('success', `✅ Category ${id ? 'updated' : 'added'}!`);
+}
+
+// ── EXAMS ──
+async function loadCategoryFilter() {
+  const cats = await api('GET', '/admin/categories');
+  const sel = document.getElementById('examCatFilter');
+  sel.innerHTML = '<option value="">All Categories</option>' +
+    cats.map(c => `<option value="${c.slug}">${c.name}</option>`).join('');
+}
+
+async function loadExams() {
+  const cat = document.getElementById('examCatFilter')?.value || '';
+  const exams = await api('GET', `/admin/exams${cat ? '?category='+cat : ''}`);
+  const tbody = document.getElementById('examTbody');
+  if (!exams.length) { tbody.innerHTML = ''; document.getElementById('examEmpty').style.display = 'block'; return; }
+  document.getElementById('examEmpty').style.display = 'none';
+  tbody.innerHTML = exams.map(e => `
+    <tr data-search="${e.name.toLowerCase()} ${e.category_name.toLowerCase()}">
+      <td class="td-icon">${e.icon}</td>
+      <td><div style="font-weight:600">${e.name}</div><div style="font-size:11px;color:var(--muted)">${e.slug}</div></td>
+      <td>${e.category_name}</td>
+      <td>${e.total_papers || 0}</td>
+      <td><span class="badge ${e.active ? 'green' : 'red'}">${e.active ? 'Active' : 'Inactive'}</span>${e.featured ? ' <span class="badge blue">Featured</span>' : ''}</td>
+      <td>${e.badge ? `<span class="badge orange">${e.badge}</span>` : '—'}</td>
+      <td><div class="action-btns">
+        <button class="act-btn edit" onclick="openExamEditModal(${e.id})">Edit</button>
+        <button class="act-btn view" onclick="loadPapersForExam(${e.id})">Papers</button>
+        <button class="act-btn del" onclick="confirmDelete('exam',${e.id},'${e.name}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+async function openExamEditModal(id) {
+  const exam = await api('GET', `/admin/exams?id=${id}`);
+  const ex = (await api('GET', '/admin/exams')).find(e => e.id === id);
+  openExamModal(ex);
+}
+
+async function openExamModal(exam) {
+  const cats = await api('GET', '/admin/categories');
+  const catSel = document.getElementById('em_category');
+  catSel.innerHTML = cats.map(c => `<option value="${c.id}" ${exam?.category_id==c.id?'selected':''}>${c.name}</option>`).join('');
+
+  document.getElementById('examModalTitle').textContent = exam ? 'Edit Exam' : 'Add Exam';
+  document.getElementById('em_id').value = exam?.id || '';
+  document.getElementById('em_name').value = exam?.name || '';
+  document.getElementById('em_slug').value = exam?.slug || '';
+  document.getElementById('em_icon').value = exam?.icon || '📋';
+  document.getElementById('em_badge').value = exam?.badge || '';
+  document.getElementById('em_sort').value = exam?.sort_order || 0;
+  document.getElementById('em_description').value = exam?.description || '';
+  document.getElementById('em_conducting_body').value = exam?.conducting_body || '';
+  document.getElementById('em_frequency').value = exam?.frequency || '';
+  document.getElementById('em_stages').value = exam?.stages || '';
+  document.getElementById('em_language').value = exam?.language || 'Hindi & English';
+  document.getElementById('em_negative').value = exam?.negative_marking || '';
+  document.getElementById('em_seo_title').value = exam?.seo_title || '';
+  document.getElementById('em_seo_description').value = exam?.seo_description || '';
+  document.getElementById('em_seo_keywords').value = exam?.seo_keywords || '';
+  document.getElementById('em_seo_content').value = exam?.seo_content || '';
+  document.getElementById('em_active').checked = exam?.active !== 0;
+  document.getElementById('em_featured').checked = exam?.featured === 1;
+
+  // Load subjects
+  const subList = document.getElementById('subjectsList');
+  subList.innerHTML = '';
+  (exam?.subjects || []).forEach(s => addSubjectRow(s));
+
+  openModal('examModal');
+}
+
+function addSubjectRow(s) {
+  const div = document.createElement('div');
+  div.className = 'subject-row';
+  div.innerHTML = `
+    <input class="finput subj-name" placeholder="Subject name" value="${s?.subject_name||''}"/>
+    <input class="finput subj-q" type="number" placeholder="Qs" value="${s?.questions||''}"/>
+    <input class="finput subj-m" type="number" placeholder="Marks" value="${s?.marks||''}"/>
+    <button class="rm-btn" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('subjectsList').appendChild(div);
+}
+
+function autoSlug() {
+  const name = document.getElementById('em_name').value;
+  const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  document.getElementById('em_slug').value = slug;
+}
+
+async function saveExam() {
+  const id = document.getElementById('em_id').value;
+  const subjects = [...document.querySelectorAll('#subjectsList .subject-row')].map(row => ({
+    subject_name: row.querySelector('.subj-name').value,
+    questions: +row.querySelector('.subj-q').value || null,
+    marks: +row.querySelector('.subj-m').value || null,
+  })).filter(s => s.subject_name);
+
+  const body = {
+    category_id: +document.getElementById('em_category').value,
+    name: document.getElementById('em_name').value,
+    slug: document.getElementById('em_slug').value,
+    icon: document.getElementById('em_icon').value,
+    badge: document.getElementById('em_badge').value || null,
+    sort_order: +document.getElementById('em_sort').value || 0,
+    description: document.getElementById('em_description').value,
+    conducting_body: document.getElementById('em_conducting_body').value,
+    frequency: document.getElementById('em_frequency').value,
+    stages: document.getElementById('em_stages').value,
+    language: document.getElementById('em_language').value,
+    negative_marking: document.getElementById('em_negative').value,
+    seo_title: document.getElementById('em_seo_title').value,
+    seo_description: document.getElementById('em_seo_description').value,
+    seo_keywords: document.getElementById('em_seo_keywords').value,
+    seo_content: document.getElementById('em_seo_content').value,
+    active: document.getElementById('em_active').checked ? 1 : 0,
+    featured: document.getElementById('em_featured').checked ? 1 : 0,
+    subjects,
+  };
+  if (!body.name || !body.category_id) return toast('error', '⚠️ Name & category required');
+  await api(id ? 'PUT' : 'POST', `/admin/exams${id ? '/'+id : ''}`, body);
+  closeModal('examModal');
+  loadExams();
+  toast('success', `✅ Exam ${id ? 'updated' : 'added'}!`);
+}
+
+// ── PAPERS ──
+async function loadPaperExamFilter() {
+  const exams = await api('GET', '/admin/exams');
+  const sel = document.getElementById('paperExamFilter');
+  sel.innerHTML = '<option value="">All Exams</option>' +
+    exams.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+}
+
+async function loadPapers() {
+  const eid = document.getElementById('paperExamFilter')?.value || '';
+  const papers = await api('GET', `/admin/papers${eid ? '?exam_id='+eid : ''}`);
+  const tbody = document.getElementById('paperTbody');
+  if (!papers.length) { tbody.innerHTML = ''; document.getElementById('paperEmpty').style.display = 'block'; return; }
+  document.getElementById('paperEmpty').style.display = 'none';
+  tbody.innerHTML = papers.map(p => `
+    <tr data-search="${p.title.toLowerCase()} ${p.exam_name?.toLowerCase()}">
+      <td><div style="font-weight:500;max-width:280px">${p.title}</div></td>
+      <td style="font-size:12px;color:var(--muted)">${p.exam_name}</td>
+      <td>${p.year || '—'}</td>
+      <td><span class="badge blue">${p.paper_type || '—'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${p.file_size || '—'}</td>
+      <td><span class="badge ${p.is_free ? 'green' : 'yellow'}">${p.is_free ? 'Free' : 'Premium'}</span></td>
+      <td style="font-weight:700">${p.downloads}</td>
+      <td><div class="action-btns">
+        <button class="act-btn edit" onclick="openPaperEditModal(${p.id})">Edit</button>
+        ${p.file_path ? `<a href="http://localhost:4000${p.file_path}" target="_blank"><button class="act-btn view">View</button></a>` : ''}
+        <button class="act-btn del" onclick="confirmDelete('paper',${p.id},'${p.title.replace(/'/g,"\\'")}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+async function loadPapersForExam(examId) {
+  showView('papers', document.querySelector('[onclick*="papers"]'));
+  await loadPaperExamFilter();
+  document.getElementById('paperExamFilter').value = examId;
+  loadPapers();
+}
+
+async function openPaperModal(paper) {
+  const exams = await api('GET', '/admin/exams');
+  const sel = document.getElementById('pm_exam_id');
+  sel.innerHTML = exams.map(e => `<option value="${e.id}" ${paper?.exam_id==e.id?'selected':''}>${e.name}</option>`).join('');
+
+  document.getElementById('paperModalTitle').textContent = paper ? 'Edit Paper' : 'Add Paper';
+  document.getElementById('pm_id').value = paper?.id || '';
+  document.getElementById('pm_title').value = paper?.title || '';
+  document.getElementById('pm_year').value = paper?.year || new Date().getFullYear();
+  document.getElementById('pm_type').value = paper?.paper_type || 'Prelims';
+  document.getElementById('pm_shift').value = paper?.shift || '';
+  document.getElementById('pm_questions').value = paper?.questions || '';
+  document.getElementById('pm_sort').value = paper?.sort_order || 0;
+  document.getElementById('pm_free').checked = paper?.is_free !== 0;
+  document.getElementById('pm_active').checked = paper?.is_active !== 0;
+  document.getElementById('pm_file').value = '';
+  document.getElementById('pm_file_url').value = paper?.file_path || '';
+  document.getElementById('filePreview').style.display = 'none';
+  openModal('paperModal');
+}
+
+async function openPaperEditModal(id) {
+  const papers = await api('GET', '/admin/papers');
+  const paper = papers.find(p => p.id === id);
+  if (paper) openPaperModal(paper);
+}
+
+function previewFile(input) {
+  if (input.files[0]) {
+    document.getElementById('filePreviewName').textContent = input.files[0].name;
+    document.getElementById('filePreview').style.display = 'flex';
+  }
+}
+
+async function savePaper() {
+  const id = document.getElementById('pm_id').value;
+  const fileInput = document.getElementById('pm_file');
+  const btn = document.getElementById('paperSaveBtn');
+  btn.innerHTML = '<span class="spinning">⏳</span> Uploading...';
+  btn.disabled = true;
+
+  try {
+    const formData = new FormData();
+    formData.append('exam_id', document.getElementById('pm_exam_id').value);
+    formData.append('title', document.getElementById('pm_title').value);
+    formData.append('year', document.getElementById('pm_year').value);
+    formData.append('paper_type', document.getElementById('pm_type').value);
+    formData.append('shift', document.getElementById('pm_shift').value);
+    formData.append('questions', document.getElementById('pm_questions').value);
+    formData.append('sort_order', document.getElementById('pm_sort').value);
+    formData.append('is_free', document.getElementById('pm_free').checked ? 1 : 0);
+    formData.append('is_active', document.getElementById('pm_active').checked ? 1 : 0);
+    formData.append('file_path', document.getElementById('pm_file_url').value);
+    if (fileInput.files[0]) formData.append('pdf', fileInput.files[0]);
+
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const res = await fetch(`${API}/admin/papers${id ? '/'+id : ''}`, {
+      method: id ? 'PUT' : 'POST', headers, body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    closeModal('paperModal');
+    loadPapers();
+    toast('success', `✅ Paper ${id ? 'updated' : 'added'}!`);
+  } catch (e) {
+    toast('error', '❌ ' + e.message);
+  } finally {
+    btn.innerHTML = 'Save Paper';
+    btn.disabled = false;
+  }
+}
+
+// ── SETTINGS ──
+async function loadSettings() {
+  const s = await api('GET', '/admin/settings');
+  document.getElementById('s_site_name').value = s.site_name || '';
+  document.getElementById('s_site_tagline').value = s.site_tagline || '';
+  document.getElementById('s_footer_text').value = s.footer_text || '';
+  document.getElementById('s_meta_description').value = s.meta_description || '';
+  document.getElementById('s_total_papers').value = s.total_papers || '';
+  document.getElementById('s_total_downloads').value = s.total_downloads || '';
+  document.getElementById('s_total_exams').value = s.total_exams || '';
+  document.getElementById('s_primary_color').value = s.primary_color || '#1a56ff';
+  document.getElementById('s_primary_color_pick').value = s.primary_color || '#1a56ff';
+  document.getElementById('s_accent_color').value = s.accent_color || '#ff6b2b';
+  document.getElementById('s_accent_color_pick').value = s.accent_color || '#ff6b2b';
+  document.getElementById('s_allow_free_download').checked = s.allow_free_download === '1';
+  document.getElementById('s_watermark_text').value = s.watermark_text || '';
+  document.getElementById('s_google_analytics').value = s.google_analytics || '';
+}
+
+async function saveSettings() {
+  const body = {
+    site_name: document.getElementById('s_site_name').value,
+    site_tagline: document.getElementById('s_site_tagline').value,
+    footer_text: document.getElementById('s_footer_text').value,
+    meta_description: document.getElementById('s_meta_description').value,
+    total_papers: document.getElementById('s_total_papers').value,
+    total_downloads: document.getElementById('s_total_downloads').value,
+    total_exams: document.getElementById('s_total_exams').value,
+    primary_color: document.getElementById('s_primary_color').value,
+    accent_color: document.getElementById('s_accent_color').value,
+    allow_free_download: document.getElementById('s_allow_free_download').checked ? '1' : '0',
+    watermark_text: document.getElementById('s_watermark_text').value,
+    google_analytics: document.getElementById('s_google_analytics').value,
+  };
+  await api('PUT', '/admin/settings', body);
+  toast('success', '✅ Settings saved!');
+}
+
+// ── CHANGE PASSWORD ──
+async function changePassword() {
+  const current = document.getElementById('cp_current').value;
+  const newP = document.getElementById('cp_new').value;
+  const confirm = document.getElementById('cp_confirm').value;
+  if (newP !== confirm) return toast('error', '❌ Passwords match nahi karte');
+  if (newP.length < 6) return toast('error', '❌ Password kam se kam 6 characters ka hona chahiye');
+  await api('POST', '/admin/change-password', { current_password: current, new_password: newP });
+  document.getElementById('cp_current').value = '';
+  document.getElementById('cp_new').value = '';
+  document.getElementById('cp_confirm').value = '';
+  toast('success', '✅ Password updated!');
+}
+
+// ── DELETE ──
+function confirmDelete(type, id, name) {
+  document.getElementById('confirmText').textContent = `"${name}" ko delete karna chahte hain? Yeh permanently remove ho jaayega.`;
+  document.getElementById('confirmOkBtn').onclick = async () => {
+    await api('DELETE', `/admin/${type === 'category' ? 'categories' : type === 'exam' ? 'exams' : 'papers'}/${id}`);
+    closeModal('confirmModal');
+    toast('success', `✅ ${name} deleted`);
+    if (type === 'category') loadCategories();
+    else if (type === 'exam') loadExams();
+    else loadPapers();
+  };
+  openModal('confirmModal');
+}
+
+// ── UTILS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function filterTable(tableId, val) {
+  val = val.toLowerCase();
+  document.querySelectorAll(`#${tableId} tr[data-search]`).forEach(row => {
+    row.style.display = (!val || row.dataset.search.includes(val)) ? '' : 'none';
+  });
+}
+
+function updateCharCount(el, countId, max) {
+  document.getElementById(countId).textContent = `${el.value.length}/${max}`;
+}
+
+function toast(type, msg) {
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.innerHTML = `<span class="ti">${type === 'success' ? '✅' : '❌'}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginWrap').style.display !== 'none') doLogin();
+});
+</script>
+</body>
+</html>
