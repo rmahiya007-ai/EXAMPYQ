@@ -13,7 +13,7 @@ const fs = require('fs');
 const Database = require('better-sqlite3');
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'exampyq_secret_change_in_production';
 
 // ── MIDDLEWARE ──
