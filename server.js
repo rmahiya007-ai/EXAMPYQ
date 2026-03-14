@@ -482,7 +482,7 @@ app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 ExamPYQ Server running at http://localhost:${PORT}`);
   console.log(`📊 Admin Panel: http://localhost:5500/admin.html`);
   console.log(`🔑 Login: admin / admin123\n`);
